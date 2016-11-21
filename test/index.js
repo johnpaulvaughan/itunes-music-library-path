@@ -1,5 +1,4 @@
 var chai = require('chai');
-chai.use(require('chai-string'));
 chai.use(require('chai-files'));
 var file = require('chai-files').file;
 var expect = require('chai').expect;
