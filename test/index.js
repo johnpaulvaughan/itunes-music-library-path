@@ -1,4 +1,5 @@
 var chai = require('chai');
+chai.use(require('chai-as-promised'));
 chai.use(require('chai-files'));
 var file = require('chai-files').file;
 var expect = require('chai').expect;
@@ -7,35 +8,34 @@ var should = require('chai').should;
 var itunesMusic = require('../index');
 var getItunesPath = itunesMusic.getItunesPath;
 var _getUserHome = itunesMusic._getUserHome;
+var _buildPaths = itunesMusic._buildPaths;
+var _validatePath = itunesMusic._validatePath;
 
 
 
 
-describe('#getItunesPath - using promises', () => {
-    it('should return a string pointing to an .xml file', () => {
-        return getItunesPath().then((result) => expect(result).to.have.string('.xml'))
+describe('#getItunesPath', () => {
+    it('should point to an XML file that exists', () => {
+        return getItunesPath().then((result) => expect(file(result)).to.exist, (err) => {})
     })
-    it('should be a file that exists', () => {
-        return getItunesPath().then((result) => expect(file(result)).to.exist)
-    })
-});
-
-describe('#getItunesPath - using callbacks', () => {
-    it('should return a string pointing to an .xml file', (done) => {
-        getItunesPath((err, result) => {
-            expect(result).to.have.string('.xml')
-            done()
+    it('or return "unable to locate" error if file doesn\'t exist', () => {
+        return getItunesPath().then((result) => {}, (err) => {
+            return expect(getItunesPath()).to.be.rejectedWith('Unable to locate iTunes XML file')
         })
     })
-    it('should be a file that exists', (done) => {
-        getItunesPath((err, result) => {
-            expect(file(result)).to.exist
-            done()
-        })
+})
+
+describe('#_buildPaths', () => {
+    it('should return an Array of two strings', () => expect(_buildPaths()).to.be.a('array').and.have.lengthOf(2));
+})
+
+describe('#_validatePath', () => {
+    it('should return a string if exists', () => {
+        let validpath = require('path').basename(__dirname) + "/iTunes Library.xml";
+        return _validatePath(validpath).then((result) => expect(result).to.be.a('string'))
     })
-});
-
-
-describe('#_getUserHome', () => {
-    it('should return a string', () => expect(_getUserHome()).to.be.a('string'));
-});
+    it('should throw "unable to locate" error if path does not exist', () => {
+        let fakepath = require('path').basename(__dirname) + "/fake-file-name.xml";
+        return expect(_validatePath(fakepath)).to.be.rejectedWith('Unable to locate iTunes XML file')
+    })
+})

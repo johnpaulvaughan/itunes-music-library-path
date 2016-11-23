@@ -1,35 +1,46 @@
 "use strict";
 var path = require('path');
 var fs = require('fs');
+var os = require('os');
 /**
- * return a path to the local itunes-music-library.xml.
+ * return a path to the local 'iTunes Music Library.xml'. Sometimes named 'iTunes Library.xml' depending on the iTunes version
  *
  * @param  null
- * @return {String (if using callbacks) or promise (if using promises)}
+ * @return Promise (of a String)
  */
-function getItunesPath(cb) {
+function getItunesPath() {
+    var xmlArray = _buildPaths();
+    return _validatePath(xmlArray[1]);
+}
+exports.getItunesPath = getItunesPath;
+/**
+ * return an array containing the two likely iTunes XML filepaths.
+ *
+ * @param  null
+ * @return Array<string>
+ */
+function _buildPaths() {
+    var home = os.homedir();
+    var path1 = path.resolve(home + '/Music/iTunes/iTunes Library.xml');
+    var path2 = path.resolve(home + '/Music/iTunes/iTunes Music Library.xml');
+    return [path1, path2];
+}
+exports._buildPaths = _buildPaths;
+/**
+ * Checks to ensure that the filepath actually exists
+ *
+ * @param  String
+ * @return Promise<string>
+ */
+function _validatePath(iXmlPath) {
     return new Promise(function (resolve, reject) {
-        var ixmlpath = path.resolve(_getUserHome() + '/Music/iTunes/iTunes Music Library.xml');
-        fs.access(ixmlpath, function (err) {
-            if (!err) {
-                if (cb) {
-                    cb(null, ixmlpath);
-                } //return success callback
-                resolve(ixmlpath); //or return success promise
-            }
-            else {
-                var error = new Error('Unable to locate iTunes XML file');
-                if (cb) {
-                    cb(error);
-                } //return failure callback
-                reject(error); //or return failure promise
-            }
+        fs.access(iXmlPath, function (err) {
+            if (!err)
+                resolve(iXmlPath);
+            else
+                reject(new Error('Unable to locate iTunes XML file'));
         });
     });
 }
-exports.getItunesPath = getItunesPath;
-function _getUserHome() {
-    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-}
-exports._getUserHome = _getUserHome;
+exports._validatePath = _validatePath;
 //# sourceMappingURL=index.js.map
