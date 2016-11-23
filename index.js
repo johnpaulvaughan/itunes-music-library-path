@@ -2,15 +2,18 @@
 var path = require('path');
 var fs = require('fs');
 var os = require('os');
+var Promise = require('bluebird');
 /**
- * return a path to the local 'iTunes Music Library.xml'. Sometimes named 'iTunes Library.xml' depending on the iTunes version
+ * return a path to the local iTunes XML. Rejects if not found.
  *
  * @param  null
- * @return Promise (of a String)
+ * @return Promise<string>
  */
 function getItunesPath() {
     var xmlArray = _buildPaths();
-    return _validatePath(xmlArray[1]);
+    return _reduceArray(xmlArray).then(function (result) {
+        return result;
+    });
 }
 exports.getItunesPath = getItunesPath;
 /**
@@ -21,11 +24,29 @@ exports.getItunesPath = getItunesPath;
  */
 function _buildPaths() {
     var home = os.homedir();
-    var path1 = path.resolve(home + '/Music/iTunes/iTunes Library.xml');
-    var path2 = path.resolve(home + '/Music/iTunes/iTunes Music Library.xml');
-    return [path1, path2];
+    var path1 = path.resolve(home + '/Music/iTunes/iTunes Music Library.xml');
+    var path2 = path.resolve(home + '/Music/iTunes/iTunes Library.xml');
+    return [path1, path1];
 }
 exports._buildPaths = _buildPaths;
+/**
+ * reduce an array of paths down to one valid path.
+ *
+ * @param  Array<string>
+ * @return Promise<string>
+ */
+function _reduceArray(xmlArray) {
+    return new Promise(function (resolve, reject) {
+        var funcArray = [];
+        xmlArray.forEach(function (item) { return funcArray.push(_validatePath(item)); });
+        return Promise.some(funcArray, 1).spread(function (success) {
+            resolve(success);
+        }).catch(Promise.AggregateError, function (err) {
+            reject(new Error('Unable to locate valid file from Array'));
+        });
+    });
+}
+exports._reduceArray = _reduceArray;
 /**
  * Checks to ensure that the filepath actually exists
  *
@@ -38,7 +59,7 @@ function _validatePath(iXmlPath) {
             if (!err)
                 resolve(iXmlPath);
             else
-                reject(new Error('Unable to locate iTunes XML file'));
+                reject(new Error('XML path is not valid'));
         });
     });
 }
