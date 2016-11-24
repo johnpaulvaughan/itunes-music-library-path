@@ -1,8 +1,8 @@
 "use strict";
 var path = require('path');
-var fs = require('fs');
 var os = require('os');
 var Promise = require('bluebird');
+var promiseIt = require('@johnpaulvaughan/promise-it-exists');
 /**
  * return a path to the local iTunes XML. Rejects if not found.
  *
@@ -17,7 +17,7 @@ function getItunesPath() {
 }
 exports.getItunesPath = getItunesPath;
 /**
- * return an array containing the two likely iTunes XML filepaths.
+ * return an array containing the two most likely iTunes XML filepaths.
  *
  * @param  null
  * @return Array<string>
@@ -38,7 +38,7 @@ exports._buildPaths = _buildPaths;
 function _reduceArray(xmlArray) {
     return new Promise(function (resolve, reject) {
         var funcArray = [];
-        xmlArray.forEach(function (item) { return funcArray.push(_validatePath(item)); });
+        xmlArray.forEach(function (item) { return funcArray.push(promiseIt.exists(item)); });
         return Promise.some(funcArray, 1).spread(function (success) {
             resolve(success);
         }).catch(Promise.AggregateError, function (err) {
@@ -47,21 +47,4 @@ function _reduceArray(xmlArray) {
     });
 }
 exports._reduceArray = _reduceArray;
-/**
- * Checks to ensure that the filepath actually exists
- *
- * @param  String
- * @return Promise<string>
- */
-function _validatePath(iXmlPath) {
-    return new Promise(function (resolve, reject) {
-        fs.access(iXmlPath, function (err) {
-            if (!err)
-                resolve(iXmlPath);
-            else
-                reject(new Error('XML path is not valid'));
-        });
-    });
-}
-exports._validatePath = _validatePath;
 //# sourceMappingURL=index.js.map

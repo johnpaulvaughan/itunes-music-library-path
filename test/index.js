@@ -9,7 +9,6 @@ var itunesMusic = require('../index');
 var getItunesPath = itunesMusic.getItunesPath;
 var _getUserHome = itunesMusic._getUserHome;
 var _buildPaths = itunesMusic._buildPaths;
-var _validatePath = itunesMusic._validatePath;
 var _reduceArray = itunesMusic._reduceArray;
 
 
@@ -40,16 +39,5 @@ describe('#_reduceArray', () => {
         let fakepath = require('path').basename(__dirname) + "/fake-file-name.xml";
         let fakepath2 = require('path').basename(__dirname) + "/fake-file-name2.xml";
         return expect(_reduceArray([fakepath,fakepath2])).to.be.rejectedWith('Unable to locate valid file from Array')
-    })
-})
-
-describe('#_validatePath', () => {
-    it('should return a string if exists', () => {
-        let validpath = require('path').basename(__dirname) + "/iTunes Library.xml";
-        return _validatePath(validpath).then((result) => expect(result).to.be.a('string'))
-    })
-    it('should throw "unable to locate" error if path does not exist', () => {
-        let fakepath = require('path').basename(__dirname) + "/fake-file-name.xml";
-        return expect(_validatePath(fakepath)).to.be.rejectedWith('XML path is not valid')
     })
 })
