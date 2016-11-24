@@ -15,7 +15,7 @@ $ npm install @johnpaulvaughan/itunes-music-library-path --save
 ##Code Example
 **To return a Promise:**
 ```javascript
-let getItunesPath = require('itunes-music-library-path');
+let getItunesPath = require('itunes-music-library-path').getItunesPath;
 
 return getItunesPath().then((result) => console.log(result))
 // -> C:\Users\JohnPaulVaughan\Music\iTunes\iTunes Music Library.xml
